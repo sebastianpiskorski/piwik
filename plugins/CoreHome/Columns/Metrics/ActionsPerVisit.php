@@ -8,6 +8,7 @@
 namespace Piwik\Plugins\CoreHome\Columns\Metrics;
 
 use Piwik\DataTable\Row;
+use Piwik\Metrics\Formatter;
 use Piwik\Piwik;
 use Piwik\Plugin\ProcessedMetric;
 use Piwik\Translate;
@@ -32,6 +33,11 @@ class ActionsPerVisit extends ProcessedMetric
         $visits = $this->getMetric($row, 'nb_visits');
 
         return Piwik::getQuotientSafe($actions, $visits, $precision = 1);
+    }
+
+    public function format($value, Formatter $formatter)
+    {
+        return $formatter->getPrettyNumber($value, 1);
     }
 
     public function getTranslatedName()

@@ -8,6 +8,7 @@
 namespace Piwik\Plugins\Events\Columns\Metrics;
 
 use Piwik\DataTable\Row;
+use Piwik\Metrics\Formatter;
 use Piwik\Piwik;
 use Piwik\Plugin\ProcessedMetric;
 
@@ -36,6 +37,11 @@ class AverageEventValue extends ProcessedMetric
         $eventsWithValue = $this->getMetric($row, 'nb_events_with_value');
 
         return Piwik::getQuotientSafe($sumEventValue, $eventsWithValue, $precision = 2);
+    }
+
+    public function format($value, Formatter $formatter)
+    {
+        return $formatter->getPrettyNumber($value, 2);
     }
 
     public function getDependentMetrics()

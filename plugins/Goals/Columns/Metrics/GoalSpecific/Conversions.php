@@ -33,6 +33,11 @@ class Conversions extends GoalSpecificProcessedMetric
         return array('goals');
     }
 
+    public function format($value, Metrics\Formatter $formatter)
+    {
+        return $formatter->getPrettyNumber($value);
+    }
+
     public function compute(Row $row)
     {
         $mappingFromNameToIdGoal = Metrics::getMappingFromNameToIdGoal();

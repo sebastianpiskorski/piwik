@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\Goals\Columns\Metrics;
 
 use Piwik\DataTable\Row;
+use Piwik\Metrics\Formatter;
 use Piwik\Piwik;
 use Piwik\Plugin\ProcessedMetric;
 
@@ -38,6 +39,11 @@ class AverageQuantity extends ProcessedMetric
         $abandonedCarts = $this->getMetric($row, 'abandoned_carts');
 
         return Piwik::getQuotientSafe($quantity, $orders === false ? $abandonedCarts : $orders, $precision = 1);
+    }
+
+    public function format($value, Formatter $formatter)
+    {
+        return $formatter->getPrettyNumber($value, 1);
     }
 
     public function getDependentMetrics()
