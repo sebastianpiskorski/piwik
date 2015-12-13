@@ -639,7 +639,7 @@ class Db
      */
     public static function tableExists($tableName)
     {
-        return self::query("SHOW TABLES LIKE ?", $tableName)->rowCount() > 0;
+        return self::query("SHOW TABLES LIKE ?", array($tableName))->rowCount() > 0;
     }
 
     /**
