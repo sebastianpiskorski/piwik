@@ -7,6 +7,21 @@
 
 $(document).ready(function () {
 
+    $('#piwikpro_license_key').on('keyup', function () {
+        var value = $(this).val();
+        if (value) {
+            $('#piwikpro_license_key_submit').prop('disabled', false);
+        } else {
+            $('#piwikpro_license_key_submit').prop('disabled', true);
+        }
+    });
+
+    $('#piwikpro_license_key_submit').on('click', function () {
+
+        var value = $('#piwikpro_license_key')
+
+    });
+
     // Keeps the plugin descriptions the same height
     $('.marketplace .plugin .description').dotdotdot({
         after: 'a.more',

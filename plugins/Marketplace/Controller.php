@@ -117,11 +117,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $view = new View($template);
         $this->setBasicVariablesView($view);
-
-        // If user can manage plugins+themes, display a warning if config not writable
-        if (CorePluginsAdmin::isPluginsAdminEnabled()) {
-            $this->displayWarningIfConfigFileNotWritable();
-        }
+        $this->displayWarningIfConfigFileNotWritable();
 
         $view->errorMessage = '';
 
