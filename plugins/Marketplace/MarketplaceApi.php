@@ -6,15 +6,16 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\CorePluginsAdmin;
+namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Date;
 use Piwik\Plugin\Dependency as PluginDependency;
+use Piwik\Plugin;
 
 /**
  *
  */
-class Marketplace
+class MarketplaceApi
 {
     /**
      * @var MarketplaceApiClient
@@ -39,9 +40,9 @@ class Marketplace
     public function getAvailablePluginNames($themesOnly)
     {
         if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', '', '');
+            $plugins = $this->client->searchForThemes('', '', '', '');
         } else {
-            $plugins = $this->client->searchForPlugins('', '', '');
+            $plugins = $this->client->searchForPlugins('', '', '', '');
         }
 
         $names = array();
@@ -138,12 +139,9 @@ class Marketplace
 
     private function enrichPluginInformation($plugin)
     {
-        $plugin['isInstalled']  = \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
+        $plugin['isInstalled']  = Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
         $plugin['canBeUpdated'] = $plugin['isInstalled'] && $this->hasPluginUpdate($plugin);
-
-        if (!empty($plugin['lastUpdated'])) {
-            $plugin['lastUpdated'] = Date::factory($plugin['lastUpdated'])->getLocalized(Date::DATE_FORMAT_SHORT);
-        }
+        $plugin['lastUpdated'] = $this->toShortDate($plugin['lastUpdated']);
 
         if ($plugin['canBeUpdated']) {
             $pluginUpdate = $this->getPluginUpdateInformation($plugin);
@@ -154,22 +152,38 @@ class Marketplace
         if (!empty($plugin['activity']['lastCommitDate'])
             && false === strpos($plugin['activity']['lastCommitDate'], '0000')
             && false === strpos($plugin['activity']['lastCommitDate'], '1970')) {
-            $plugin['activity']['lastCommitDate'] = Date::factory($plugin['activity']['lastCommitDate'])->getLocalized(Date::DATE_FORMAT_LONG);
+            $plugin['activity']['lastCommitDate'] = $this->toLongDate($plugin['activity']['lastCommitDate']);
         } else {
             $plugin['activity']['lastCommitDate'] = null;
         }
 
         if (!empty($plugin['versions'])) {
             foreach ($plugin['versions'] as $index => $version) {
-                if (!empty($version['release'])) {
-                    $plugin['versions'][$index]['release'] = Date::factory($version['release'])->getLocalized(Date::DATE_FORMAT_LONG);
-                }
+                $plugin['versions'][$index]['release'] = $this->toLongDate($version['release']);
             }
         }
 
         $plugin = $this->addMissingRequirements($plugin);
 
         return $plugin;
+    }
+
+    private function toLongDate($date)
+    {
+        if (!empty($date)) {
+            $date = Date::factory($date)->getLocalized(Date::DATE_FORMAT_LONG);
+        }
+
+        return $date;
+    }
+
+    private function toShortDate($date)
+    {
+        if (!empty($date)) {
+            $date = Date::factory($date)->getLocalized(Date::DATE_FORMAT_SHORT);
+        }
+
+        return $date;
     }
 
     /**

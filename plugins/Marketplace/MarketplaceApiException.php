@@ -7,7 +7,7 @@
  *
  */
 
-namespace Piwik\Plugins\CorePluginsAdmin;
+namespace Piwik\Plugins\Marketplace;
 
 /**
  */

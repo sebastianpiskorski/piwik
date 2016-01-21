@@ -19,8 +19,8 @@ use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin;
-use Piwik\Plugins\CorePluginsAdmin\Marketplace;
 use Piwik\Plugins\LanguagesManager\LanguagesManager;
+use Piwik\Plugins\Marketplace\MarketplaceApi;
 use Piwik\SettingsServer;
 use Piwik\Updater as DbUpdater;
 use Piwik\Version;
@@ -65,7 +65,7 @@ class Controller extends \Piwik\Plugin\Controller
         $marketplacePlugins = array();
         try {
             if (!empty($incompatiblePlugins)) {
-                $marketplace = new Marketplace();
+                $marketplace = new MarketplaceApi();
                 $marketplacePlugins = $marketplace->getAllAvailablePluginNames();
             }
         } catch (\Exception $e) {}

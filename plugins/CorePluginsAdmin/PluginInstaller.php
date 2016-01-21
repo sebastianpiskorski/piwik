@@ -13,6 +13,7 @@ use Piwik\Filechecks;
 use Piwik\Filesystem;
 use Piwik\Piwik;
 use Piwik\Plugin\Dependency as PluginDependency;
+use Piwik\Plugins\Marketplace\MarketplaceApiClient;
 use Piwik\Unzip;
 
 /**

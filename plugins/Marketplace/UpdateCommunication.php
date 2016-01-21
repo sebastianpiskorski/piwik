@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\CorePluginsAdmin;
+namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Config;
 use Piwik\Mail;
@@ -49,7 +49,7 @@ class UpdateCommunication
     {
         $isEnabled = Config::getInstance()->General['enable_update_communication'];
 
-        return CorePluginsAdmin::isMarketplaceEnabled() && !empty($isEnabled);
+        return Marketplace::isMarketplaceEnabled() && !empty($isEnabled);
     }
 
     /**
@@ -173,7 +173,7 @@ class UpdateCommunication
 
     protected function getPluginsHavingUpdate()
     {
-        $marketplace         = new Marketplace();
+        $marketplace         = new MarketplaceApi();
         $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
         $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
 

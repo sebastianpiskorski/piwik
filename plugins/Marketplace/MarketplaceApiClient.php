@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\CorePluginsAdmin;
+namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Cache;
 use Piwik\Container\StaticContainer;
@@ -21,10 +21,10 @@ class MarketplaceApiClient
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
-    private $domain = 'http://plugins.piwik';
-
     public function __construct()
     {
+        $this->domain = StaticContainer::get('MarketplaceEndpoint');
+
         $updater = StaticContainer::get('Piwik\Plugins\CoreUpdater\Updater');
         if (0 && $updater->isUpdatingOverHttps()) {
             $this->domain = str_replace('http://', 'https://', $this->domain);

@@ -1,4 +1,4 @@
-{% import '@CorePluginsAdmin/macros.twig' as pluginsMacro %}
+{% import '@Marketplace/macros.twig' as pluginsMacro %}
 
 {% block content %}
 
@@ -25,7 +25,9 @@
                 </div>
                 <div class="width:25%;float:left;">
 
-                    {% if plugin.isPaid %}
+                    {% if plugin.isCustomPlugin %}
+                        Install
+                    {% elseif plugin.isPaid %}
                         <a class="install update"
                            target="_blank"
                            href="{{ plugin.homepage|e('html_attr') }}"

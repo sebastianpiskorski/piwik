@@ -10,8 +10,9 @@ namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Db;
 use Piwik\Menu\MenuAdmin;
-use Piwik\Menu\MenuUser;
 use Piwik\Piwik;
+use Piwik\Plugins\Marketplace\Marketplace;
+use Piwik\Plugins\Marketplace\MarketplaceApi;
 
 /**
  */
@@ -22,12 +23,12 @@ class Menu extends \Piwik\Plugin\Menu
     {
         $hasSuperUserAcess    = Piwik::hasUserSuperUserAccess();
         $isAnonymous          = Piwik::isUserIsAnonymous();
-        $isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
+        $isMarketplaceEnabled = Marketplace::isMarketplaceEnabled();
 
         $pluginsUpdateMessage = '';
 
         if ($hasSuperUserAcess && $isMarketplaceEnabled) {
-            $marketplace = new Marketplace();
+            $marketplace = new MarketplaceApi();
             $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
             $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
 
@@ -44,30 +45,6 @@ class Menu extends \Piwik\Plugin\Menu
             $menu->addManageItem(Piwik::translate('General_Plugins') . $pluginsUpdateMessage,
                                    $this->urlForAction('plugins', array('activated' => '')),
                                    $order = 4);
-        }
-
-
-        if (Piwik::hasUserSuperUserAccess() && CorePluginsAdmin::isMarketplaceEnabled()) {
-            $menu->addManageItem('CorePluginsAdmin_Marketplace',
-                $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'admin')),
-                $order = 12);
-        }
-    }
-
-    private function isAllowedToSeeMarketPlace()
-    {
-        $isAnonymous          = Piwik::isUserIsAnonymous();
-        $isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
-
-        return $isMarketplaceEnabled && !$isAnonymous;
-    }
-
-    public function configureUserMenu(MenuUser $menu)
-    {
-        if ($this->isAllowedToSeeMarketPlace()) {
-            $menu->addPlatformItem('CorePluginsAdmin_Marketplace',
-                                   $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'user')),
-                                   $order = 5);
         }
     }
 }

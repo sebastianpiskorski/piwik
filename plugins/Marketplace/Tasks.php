@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\CorePluginsAdmin;
+namespace Piwik\Plugins\Marketplace;
 
 class Tasks extends \Piwik\Plugin\Tasks
 {
@@ -14,7 +14,7 @@ class Tasks extends \Piwik\Plugin\Tasks
     {
         $this->daily('clearAllCacheEntries', null, self::LOWEST_PRIORITY);
 
-        if (CorePluginsAdmin::isMarketplaceEnabled()) {
+        if (Marketplace::isMarketplaceEnabled()) {
             $this->daily('sendNotificationIfUpdatesAvailable', null, self::LOWEST_PRIORITY);
         }
     }

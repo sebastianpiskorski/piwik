@@ -1,7 +1,7 @@
 <div class="row marketplace-max-width">
 
     {# Hide filters and search for themes because we don't have many of them #}
-    {% if not showThemes %}
+    {% if not showThemes and not showPaid %}
         <div class="col-sm-12 clearfix">
 
             <form action="{{ linkTo({'sort': ''}) }}" method="post" class="plugin-search">
