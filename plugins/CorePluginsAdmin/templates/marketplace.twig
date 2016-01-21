@@ -12,11 +12,14 @@
         </h2>
 
         <ul class="nav nav-pills">
-            <li {% if not showThemes %}class="active"{% endif %}>
-                <a href="{{ linkTo({'show': 'plugins'}) }}">{{ 'General_Plugins'|translate }}</a>
+            <li {% if not showThemes and not showPaid %}class="active"{% endif %}>
+                <a href="{{ linkTo({'show': 'plugins', 'type': 'free'}) }}">{{ 'General_Plugins'|translate }}</a>
+            </li>
+            <li {% if not showThemes and showPaid %}class="active"{% endif %}>
+                <a href="{{ linkTo({'show': 'plugins', 'type': 'paid'}) }}">{{ 'Paid Plugins'|translate }}</a>
             </li>
             <li {% if showThemes %}class="active"{% endif %}>
-                <a href="{{ linkTo({'show': 'themes'}) }}">{{ 'CorePluginsAdmin_Themes'|translate }}</a>
+                <a href="{{ linkTo({'show': 'themes', 'type': 'free'}) }}">{{ 'CorePluginsAdmin_Themes'|translate }}</a>
             </li>
         </ul>
 

@@ -140,7 +140,10 @@ class Marketplace
     {
         $plugin['isInstalled']  = \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
         $plugin['canBeUpdated'] = $plugin['isInstalled'] && $this->hasPluginUpdate($plugin);
-        $plugin['lastUpdated']  = Date::factory($plugin['lastUpdated'])->getLocalized(Date::DATE_FORMAT_SHORT);
+
+        if (!empty($plugin['lastUpdated'])) {
+            $plugin['lastUpdated'] = Date::factory($plugin['lastUpdated'])->getLocalized(Date::DATE_FORMAT_SHORT);
+        }
 
         if ($plugin['canBeUpdated']) {
             $pluginUpdate = $this->getPluginUpdateInformation($plugin);
@@ -149,17 +152,18 @@ class Marketplace
         }
 
         if (!empty($plugin['activity']['lastCommitDate'])
-            && false === strpos($plugin['activity']['lastCommitDate'], '0000')) {
-
+            && false === strpos($plugin['activity']['lastCommitDate'], '0000')
+            && false === strpos($plugin['activity']['lastCommitDate'], '1970')) {
             $plugin['activity']['lastCommitDate'] = Date::factory($plugin['activity']['lastCommitDate'])->getLocalized(Date::DATE_FORMAT_LONG);
         } else {
             $plugin['activity']['lastCommitDate'] = null;
         }
 
         if (!empty($plugin['versions'])) {
-
             foreach ($plugin['versions'] as $index => $version) {
-                $plugin['versions'][$index]['release'] = Date::factory($version['release'])->getLocalized(Date::DATE_FORMAT_LONG);
+                if (!empty($version['release'])) {
+                    $plugin['versions'][$index]['release'] = Date::factory($version['release'])->getLocalized(Date::DATE_FORMAT_LONG);
+                }
             }
         }
 

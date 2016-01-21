@@ -20,7 +20,7 @@ class MarketplaceApiClient
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
-    private $domain = 'http://plugins.piwik.org';
+    private $domain = 'https://plugins.piwik.org';
 
     public static function clearAllCacheEntries()
     {
@@ -133,9 +133,20 @@ class MarketplaceApiClient
         $result = $cache->fetch($cacheId);
 
         if (false === $result) {
-            $endpoint = $this->domain . '/api/1.0/';
+            $endpoint = $this->domain . '/api/2.0/';
+
             $url = sprintf('%s%s?%s', $endpoint, $action, $query);
-            $response = Http::sendHttpRequest($url, static::HTTP_REQUEST_TIMEOUT);
+            if (0) {
+                $url .= '&access_token=';
+            }
+
+            $response = Http::sendHttpRequest($url, static::HTTP_REQUEST_TIMEOUT, $userAgent = null,
+                                              $destinationPath = null,
+                                              $followDepth = 0,
+                                              $acceptLanguage = false,
+                                              $byteRange = false,
+                                              $getExtendedInfo = false,
+                                              $httpMethod = 'POST');
             $result = json_decode($response, true);
 
             if (is_null($result)) {
@@ -161,7 +172,7 @@ class MarketplaceApiClient
 
     private function getCacheKey($action, $query)
     {
-        return sprintf('marketplace.api.1.0.%s.%s', str_replace('/', '.', $action), md5($query));
+        return sprintf('marketplace.api.2.0.%s.%s', str_replace('/', '.', $action), md5($query));
     }
 
     /**

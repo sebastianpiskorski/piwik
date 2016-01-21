@@ -54,6 +54,7 @@ class Controller extends Plugin\ControllerAdmin
         $show = Common::getRequestVar('show', 'plugins', 'string');
         $query = Common::getRequestVar('query', '', 'string', $_POST);
         $sort = Common::getRequestVar('sort', $this->defaultSortMethod, 'string');
+        $type = Common::getRequestVar('type', 'free', 'string');
         if (!in_array($sort, $this->validSortMethods)) {
             $sort = $this->defaultSortMethod;
         }
@@ -67,8 +68,18 @@ class Controller extends Plugin\ControllerAdmin
         $marketplace = new Marketplace();
 
         $showThemes = ($show === 'themes');
-        $view->plugins = $marketplace->searchPlugins($query, $sort, $showThemes);
+        $showPaid = ($type === 'paid');
+        $plugins = $marketplace->searchPlugins($query, $sort, $showThemes);
+
+        foreach ($plugins as $key => $plugin) {
+            if ($plugin['isPaid'] !== $showPaid) {
+                unset($plugins[$key]);
+            }
+        }
+
+        $view->plugins = $plugins;
         $view->showThemes = $showThemes;
+        $view->showPaid = $showPaid;
         $view->mode = $mode;
         $view->query = $query;
         $view->sort = $sort;
