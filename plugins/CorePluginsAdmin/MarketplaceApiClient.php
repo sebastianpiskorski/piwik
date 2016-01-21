@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Cache;
+use Piwik\Container\StaticContainer;
 use Piwik\Http;
 use Piwik\Version;
 
@@ -20,7 +21,15 @@ class MarketplaceApiClient
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
-    private $domain = 'https://plugins.piwik.org';
+    private $domain = 'http://plugins.piwik.org';
+
+    public function __construct()
+    {
+        $updater = StaticContainer::get('Piwik\Plugins\CoreUpdater\Updater');
+        if ($updater->isUpdatingOverHttps()) {
+            $this->domain = str_replace('http://', 'https://', $this->domain);
+        }
+    }
 
     public static function clearAllCacheEntries()
     {
