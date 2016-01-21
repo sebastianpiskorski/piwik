@@ -60,12 +60,12 @@ class Marketplace
         );
     }
 
-    public function searchPlugins($query, $sort, $themesOnly)
+    public function searchPlugins($query, $sort, $themesOnly, $purchaseType = '')
     {
         if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', $query, $sort);
+            $plugins = $this->client->searchForThemes('', $query, $sort, $purchaseType);
         } else {
-            $plugins = $this->client->searchForPlugins('', $query, $sort);
+            $plugins = $this->client->searchForPlugins('', $query, $sort, $purchaseType);
         }
 
         foreach ($plugins as $key => $plugin) {

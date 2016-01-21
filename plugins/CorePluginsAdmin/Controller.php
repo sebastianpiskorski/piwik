@@ -69,13 +69,10 @@ class Controller extends Plugin\ControllerAdmin
 
         $showThemes = ($show === 'themes');
         $showPaid = ($type === 'paid');
-        $plugins = $marketplace->searchPlugins($query, $sort, $showThemes);
-
-        foreach ($plugins as $key => $plugin) {
-            if ($plugin['isPaid'] !== $showPaid) {
-                unset($plugins[$key]);
-            }
+        if ($type !== 'paid') {
+            $type = 'free';
         }
+        $plugins = $marketplace->searchPlugins($query, $sort, $showThemes, $type);
 
         $view->plugins = $plugins;
         $view->showThemes = $showThemes;

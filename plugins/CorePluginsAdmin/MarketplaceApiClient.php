@@ -21,12 +21,12 @@ class MarketplaceApiClient
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
-    private $domain = 'http://plugins.piwik.org';
+    private $domain = 'http://plugins.piwik';
 
     public function __construct()
     {
         $updater = StaticContainer::get('Piwik\Plugins\CoreUpdater\Updater');
-        if ($updater->isUpdatingOverHttps()) {
+        if (0 && $updater->isUpdatingOverHttps()) {
             $this->domain = str_replace('http://', 'https://', $this->domain);
         }
     }
@@ -110,9 +110,9 @@ class MarketplaceApiClient
         return $pluginDetails;
     }
 
-    public function searchForPlugins($keywords, $query, $sort)
+    public function searchForPlugins($keywords, $query, $sort, $purchaseType)
     {
-        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
+        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
 
         if (!empty($response['plugins'])) {
             return $response['plugins'];
@@ -121,9 +121,9 @@ class MarketplaceApiClient
         return array();
     }
 
-    public function searchForThemes($keywords, $query, $sort)
+    public function searchForThemes($keywords, $query, $sort, $purchaseType)
     {
-        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
+        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
 
         if (!empty($response['plugins'])) {
             return $response['plugins'];
