@@ -21,10 +21,16 @@ class Plugins
      * @var Api\Client
      */
     private $marketplaceClient;
+
+    /**
+     * @var Consumer
+     */
+    private $consumer;
     
-    public function __construct(Api\Client $marketplaceClient)
+    public function __construct(Api\Client $marketplaceClient, Consumer $consumer)
     {
         $this->marketplaceClient = $marketplaceClient;
+        $this->consumer = $consumer;
     }
 
     public function getPluginInfo($pluginName)
@@ -67,10 +73,11 @@ class Plugins
             $plugins = $this->marketplaceClient->searchForPlugins('', $query, $sort, $purchaseType);
         }
 
-        $showOnlyPiwikPlugins = Marketplace::showOnlyPiwikAndPiwikProPlugins();
+        $whitelistedDistributors = $this->consumer->getWhitelistedGithubOrgs();
 
         foreach ($plugins as $key => $plugin) {
-            if ($showOnlyPiwikPlugins && !$this->isPluginDevelopedByPiwikOrPiwikPro($plugin)) {
+            if (!empty($whitelistedDistributors) &&
+                !$this->isPluginDevelopedByDistributors($plugin, $whitelistedDistributors)) {
                 // for piwik pro clients we do not allow to install any 3rd party plugins
                 unset($plugins[$key]);
             } else {
@@ -81,16 +88,15 @@ class Plugins
         return $plugins;
     }
 
-    private function isPluginDevelopedByPiwikOrPiwikPro($plugin)
+    private function isPluginDevelopedByDistributors($plugin, $whitelistedDistributors)
     {
         if (empty($plugin['owner'])) {
             return false;
         }
 
         $owner = strtolower($plugin['owner']);
-        $allowedOwners = array('piwik', 'piwikpro');
 
-        return in_array($owner, $allowedOwners, $strict = true);
+        return in_array($owner, $whitelistedDistributors, $strict = true);
     }
 
     private function getPluginUpdateInformation($plugin)

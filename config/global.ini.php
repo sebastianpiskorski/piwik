@@ -137,9 +137,11 @@ disable_merged_assets = 0
 ; the access to disk and install custom PHP code (Piwik plugins).
 enabled = 1
 
-; For Piwik PRO clients 3rd party plugins are hidden by default to make sure the Piwik is stable. By setting this
-; to 1 third plugins will be shown even for Piwik PRO clients.
-force_show_third_party_plugins = 0
+; Can be used to restrict the list of shown plugins in the Marketplace to specific github organizations. By default it
+; will show all plugins ("0"). To whistlist only specific organizations list them comma separated, eg "piwik,piwikpro".
+; To force showing all plugins if a license key specified, set the value "all". The value "all" is especially interesting
+; for Piwik PRO clients as they see only plugins developed by Piwik and Piwik PRO by default.
+whitelisted_github_orgs = 0
 
 [General]
 

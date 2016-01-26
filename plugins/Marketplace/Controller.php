@@ -40,13 +40,19 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     private $marketplaceApi;
 
     /**
+     * @var Consumer
+     */
+    private $consumer;
+
+    /**
      * Controller constructor.
      * @param Plugins $plugins
      */
-    public function __construct(Plugins $plugins, Api\Client $marketplaceApi)
+    public function __construct(Plugins $plugins, Api\Client $marketplaceApi, Consumer $consumer)
     {
         $this->plugins = $plugins;
         $this->marketplaceApi = $marketplaceApi;
+        $this->consumer = $consumer;
 
         parent::__construct();
     }
@@ -83,7 +89,14 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $show = Common::getRequestVar('show', 'plugins', 'string');
         $query = Common::getRequestVar('query', '', 'string', $_POST);
         $sort = Common::getRequestVar('sort', $this->defaultSortMethod, 'string');
-        $type = Common::getRequestVar('type', 'free', 'string');
+
+        $defaultType = 'free';
+        if ($this->consumer->hasAccessToPaidPlugins()) {
+            $defaultType = 'paid';
+        }
+
+        $type = Common::getRequestVar('type', $defaultType, 'string');
+
         if (!in_array($sort, $this->validSortMethods)) {
             $sort = $this->defaultSortMethod;
         }
@@ -96,13 +109,14 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $showThemes = ($show === 'themes');
         $showPaid = ($type === 'paid');
-        if ($type !== 'paid') {
-            $type = 'free';
-        }
-        $plugins = $this->plugins->searchPlugins($query, $sort, $showThemes, $type);
 
-        $consumer = $this->marketplaceApi->getConsumer();
+        $freePlugins = $this->plugins->searchPlugins($query, $sort, $themes = false, 'free');
+        $paidPlugins = $this->plugins->searchPlugins($query, $sort, $themes = false, 'paid');
+        $themes = $this->plugins->searchPlugins($query, $sort, $themes = true);
 
+        $consumer = $this->consumer->getConsumer();
+
+        $view->distributor = $this->consumer->getDistributor();
         if (!empty($consumer['expireDate'])) {
             $expireDate = Date::factory($consumer['expireDate']);
             $consumer['expireDateLong'] = $expireDate->getLocalized(Date::DATE_FORMAT_LONG);
@@ -113,9 +127,13 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             $consumer['expireDateDiff'] = $formatter->getPrettyTimeFromSeconds($seconds, $displayTimeAsSentence = true, $round = true);
         }
 
-        $view->areThirdPartyPluginsHidden = Marketplace::showOnlyPiwikAndPiwikProPlugins();
+        $view->whitelistedGithubOrgs = $this->consumer->getWhitelistedGithubOrgs();
+        $view->hasAccessToPaidPlugins = $this->consumer->hasAccessToPaidPlugins();
+
         $view->consumer = $consumer;
-        $view->plugins = $plugins;
+        $view->paidPlugins = $paidPlugins;
+        $view->freePlugins = $freePlugins;
+        $view->themes = $themes;
         $view->showThemes = $showThemes;
         $view->showPaid = $showPaid;
         $view->mode = $mode;

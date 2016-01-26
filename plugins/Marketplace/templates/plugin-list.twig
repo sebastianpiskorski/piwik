@@ -30,10 +30,10 @@
         </div>
     {% endif %}
 
-    {% if not showPaid and areThirdPartyPluginsHidden %}
+    {% if not showPaid and areGithubOrgsWhitelisted and distributor.getName %}
         <div class="col-sm-12 clearfix">
             <div class="alert alert-info">
-                As a Piwik PRO client you can only install plugins developed by Piwik and Piwik PRO to ensure your
+                As a <a href="{{ distributor.getHomepage|e('html_attr') }}">{{ distributor.getName }}</a> client you can only install plugins developed by {{ whitelistedGithubOrgs|join(' and ') }} to ensure your
                 Piwik is stable and safe.
             </div>
         </div>

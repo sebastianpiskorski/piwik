@@ -57,7 +57,6 @@
         "Origin": "Origin",
         "OriginCore": "Core",
         "OriginThirdParty": "Third-party",
-        "PaidPlugins": "Paid Plugins",
         "PluginHomepage": "Plugin Homepage",
         "PluginKeywords": "Keywords",
         "PluginNotCompatibleWith": "%1$s plugin is not compatible with %2$s.",

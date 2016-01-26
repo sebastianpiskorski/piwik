@@ -1,5 +1,7 @@
 {
   "Marketplace": {
-    "Marketplace": "Marketplace"
+    "Marketplace": "Marketplace",
+    "PaidPlugins": "Paid Plugins",
+    "FreePlugins": "Free Plugins"
   }
 }
