@@ -18,11 +18,11 @@ use Piwik\Plugin;
 class Plugins
 {
     /**
-     * @var MarketplaceApi
+     * @var Api\Client
      */
     private $marketplaceApi;
     
-    public function __construct(MarketplaceApi $marketplaceApi)
+    public function __construct(Api\Client $marketplaceApi)
     {
         $this->marketplaceApi = $marketplaceApi;
     }

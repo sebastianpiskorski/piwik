@@ -9,10 +9,9 @@
 namespace Piwik\Plugins\Marketplace;
 
 use Exception;
-use Piwik\Container\StaticContainer;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Plugins\Marketplace\Api\Client;
+use Piwik\Plugins\Marketplace\Api\Service;
 
 /**
  * API for plugin Marketplace
@@ -22,11 +21,11 @@ use Piwik\Plugins\Marketplace\Api\Client;
 class API extends \Piwik\Plugin\API
 {
     /**
-     * @var Client
+     * @var Service
      */
     private $marketplaceClient;
 
-    public function __construct(Client $client)
+    public function __construct(Service $client)
     {
         $this->marketplaceClient = $client;
     }
@@ -39,7 +38,7 @@ class API extends \Piwik\Plugin\API
 
         try {
             $consumer = $this->marketplaceClient->fetch('consumer', array());
-        } catch (Api\Client\Exception $e) {
+        } catch (Api\Service\Exception $e) {
             $consumer = false;
         }
 

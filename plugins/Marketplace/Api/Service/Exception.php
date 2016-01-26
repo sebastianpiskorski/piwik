@@ -7,7 +7,7 @@
  *
  */
 
-namespace Piwik\Plugins\Marketplace\Api\Client;
+namespace Piwik\Plugins\Marketplace\Api\Service;
 
 /**
  */

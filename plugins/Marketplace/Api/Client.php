@@ -9,7 +9,9 @@
 namespace Piwik\Plugins\Marketplace\Api;
 
 use Piwik\Cache;
-use Piwik\Http as PiwikHttp;
+use Piwik\Http;
+use Piwik\Plugins\Marketplace\Api\Service;
+use Piwik\Version;
 
 /**
  *
@@ -19,68 +21,175 @@ class Client
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
-    /**
-     * @var string
-     */
-    private $domain;
+    private $service;
 
-    /**
-     * @var null|string
-     */
-    private $accessToken;
-
-    public function __construct($domain)
+    public function __construct(Service $service)
     {
-        $this->domain = $domain;
+        $this->service = $service;
     }
 
     public function authenticate($accessToken)
     {
-        if (empty($accessToken)) {
-            $this->accessToken = null;
-        } elseif (ctype_xdigit($accessToken)) {
-            $this->accessToken = $accessToken;
-        }
+        $this->service->authenticate($accessToken);
     }
 
-    public function fetch($action, $params)
+    public function getPluginInfo($name)
     {
+        $action = sprintf('plugins/%s/info', $name);
+
+        return $this->fetch($action, array());
+    }
+
+    public function getConsumer()
+    {
+        return $this->fetch('consumer', array());
+    }
+
+    public function download($pluginOrThemeName, $target)
+    {
+        $downloadUrl = $this->getDownloadUrl($pluginOrThemeName);
+
+        if (empty($downloadUrl)) {
+            return false;
+        }
+
+        $success = Http::fetchRemoteFile($downloadUrl, $target, 0, static::HTTP_REQUEST_TIMEOUT);
+
+        return $success;
+    }
+
+    /**
+     * @param \Piwik\Plugin[] $plugins
+     * @return array|mixed
+     */
+    public function checkUpdates($plugins)
+    {
+        $params = array();
+
+        foreach ($plugins as $plugin) {
+            $pluginName = $plugin->getPluginName();
+            if (!\Piwik\Plugin\Manager::getInstance()->isPluginBundledWithCore($pluginName)) {
+                $params[] = array('name' => $plugin->getPluginName(), 'version' => $plugin->getVersion());
+            }
+        }
+
+        if (empty($params)) {
+            return array();
+        }
+
+        $params = array('plugins' => $params);
+
+        $hasUpdates = $this->fetch('plugins/checkUpdates', array('plugins' => json_encode($params)));
+
+        if (empty($hasUpdates)) {
+            return array();
+        }
+
+        return $hasUpdates;
+    }
+
+    /**
+     * @param  \Piwik\Plugin[] $plugins
+     * @param  bool $themesOnly
+     * @return array
+     */
+    public function getInfoOfPluginsHavingUpdate($plugins, $themesOnly)
+    {
+        $hasUpdates = $this->checkUpdates($plugins);
+
+        $pluginDetails = array();
+
+        foreach ($hasUpdates as $pluginHavingUpdate) {
+            $plugin = $this->getPluginInfo($pluginHavingUpdate['name']);
+            $plugin['repositoryChangelogUrl'] = $pluginHavingUpdate['repositoryChangelogUrl'];
+
+            if (!empty($plugin['isTheme']) == $themesOnly) {
+                $pluginDetails[] = $plugin;
+            }
+        }
+
+        return $pluginDetails;
+    }
+
+    public function searchForPlugins($keywords, $query, $sort, $purchaseType)
+    {
+        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
+    }
+
+    public function searchForThemes($keywords, $query, $sort, $purchaseType)
+    {
+        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
+    }
+
+    private function fetch($action, $params)
+    {
+        ksort($params); // sort params so cache is reused more often even if param order is different
         $query = http_build_query($params);
+        $cacheId = $this->getCacheKey($action, $query);
 
-        $endpoint = $this->domain . '/api/2.0/';
+        $cache  = $this->buildCache();
+        $result = $cache->fetch($cacheId);
 
-        $url = sprintf('%s%s?%s', $endpoint, $action, $query);
-
-        if ($this->accessToken) {
-            $url .= '&access_token=' . $this->accessToken;
+        if ($result !== false) {
+            return $result;
         }
 
-        $response = PiwikHttp::sendHttpRequest($url, static::HTTP_REQUEST_TIMEOUT, $userAgent = null,
-                                               $destinationPath = null,
-                                               $followDepth = 0,
-                                               $acceptLanguage = false,
-                                               $byteRange = false,
-                                               $getExtendedInfo = false,
-                                               $httpMethod = 'POST');
-        $result = json_decode($response, true);
-
-        if (is_null($result)) {
-            $message = sprintf('There was an error reading the response from the Marketplace: %s. Please try again later.',
-                substr($response, 0, 50));
-            throw new Client\Exception($message);
+        try {
+            $result = $this->service->fetch($action, $params);
+        } catch (Service\Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode());
         }
 
-        if (!empty($result['error'])) {
-            throw new Client\Exception($result['error']);
-        }
+        $cache->save($cacheId, $result, self::CACHE_TIMEOUT_IN_SECONDS);
 
         return $result;
     }
 
-    public function getDomain()
+    public function clearAllCacheEntries()
     {
-        return $this->domain;
+        $cache = Cache::getLazyCache();
+        $cache->flushAll();
     }
 
+    private function buildCache()
+    {
+        return Cache::getLazyCache();
+    }
+
+    private function getCacheKey($action, $query)
+    {
+        return sprintf('marketplace.api.2.0.%s.%s', str_replace('/', '.', $action), md5($query));
+    }
+
+    /**
+     * @param  $pluginOrThemeName
+     * @throws Exception
+     * @return string
+     */
+    public function getDownloadUrl($pluginOrThemeName)
+    {
+        $plugin = $this->getPluginInfo($pluginOrThemeName);
+
+        if (empty($plugin['versions'])) {
+            throw new Exception('Plugin has no versions.');
+        }
+
+        $latestVersion = array_pop($plugin['versions']);
+        $downloadUrl = $latestVersion['download'];
+
+        return $this->service->getDomain() . $downloadUrl . '?coreVersion=' . Version::VERSION;
+    }
 
 }

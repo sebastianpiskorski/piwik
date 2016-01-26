@@ -14,7 +14,7 @@ use Piwik\Filesystem;
 use Piwik\Piwik;
 use Piwik\Plugin\Dependency as PluginDependency;
 use Piwik\Unzip;
-use Piwik\Plugins\Marketplace\MarketplaceApi;
+use Piwik\Plugins\Marketplace\Api\Client;
 
 /**
  *
@@ -27,7 +27,7 @@ class PluginInstaller
     private $pluginName;
 
     /**
-     * @var MarketplaceApi
+     * @var Client
      */
     private $marketplaceApi;
 

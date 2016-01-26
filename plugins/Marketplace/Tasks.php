@@ -8,16 +8,14 @@
  */
 namespace Piwik\Plugins\Marketplace;
 
-use Piwik\Container\StaticContainer;
-
 class Tasks extends \Piwik\Plugin\Tasks
 {
     /**
-     * @var MarketplaceApi
+     * @var Api\Client
      */
     private $api;
 
-    public function __construct(MarketplaceApi $api)
+    public function __construct(Api\Client $api)
     {
         $this->api = $api;
     }
