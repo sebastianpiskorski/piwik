@@ -42,7 +42,13 @@ class Client
 
     public function getConsumer()
     {
-        return $this->fetch('consumer', array());
+        try {
+            $consumer = $this->fetch('consumer', array());
+        } catch (Exception $e) {
+            $consumer = null;
+        }
+
+        return $consumer;
     }
 
     public function download($pluginOrThemeName, $target)

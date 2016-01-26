@@ -26,13 +26,19 @@
         {% if showPaid %}
             <div class="marketplace-max-width">
                 <p>
-                    {% if licenseKey is defined %}
+                    {% if consumer is defined and consumer and consumer.name %}
 
                         You have access to Paid Plugins as a client of <a href="https://piwik.pro">Piwik PRO</a>. The license
-                        expires on 2016-03-03 <strong>in 15 days</strong>. To extend the date of your license or if you experience any troubles contact
+                        expires on {{ consumer.expireDate }} <strong>in 15 days</strong>. To extend the date of your license or if you experience any troubles contact
                         <a target="_blank" href="https://piwik.pro/">Piwik PRO</a>.
 
-                        <input type="password" id="piwikpro_license_key"> <input disabled="disabled" id="piwikpro_license_key_submit" class="btn" type="button" value="Change license">
+                        {% if consumer.showWarningLicenseExpiresSoon %}
+                            <div class="alert alert-warning">Your license key expires soon, please contact Piwik PRO.</div>
+                        {% endif %}
+
+                        <br />
+                        <input type="password" id="piwikpro_license_key">
+                        <input disabled="disabled" id="piwikpro_license_key_submit" class="btn" type="button" value="Update license key">
 
                     {% else %}
 

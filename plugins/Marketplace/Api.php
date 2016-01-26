@@ -46,7 +46,8 @@ class API extends \Piwik\Plugin\API
             throw new Exception('Entered license key is not valid');
         }
 
-        Option::set('marketplace_license_key', $licenseKey);
+        $key = new LicenseKey();
+        $key->set($licenseKey);
 
         return true;
     }

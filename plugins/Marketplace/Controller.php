@@ -33,12 +33,19 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     private $plugins;
 
     /**
+     * @var Api\Client
+     */
+    private $marketplaceApi;
+
+    /**
      * Controller constructor.
      * @param Plugins $plugins
      */
-    public function __construct(Plugins $plugins)
+    public function __construct(Plugins $plugins, Api\Client $marketplaceApi)
     {
         $this->plugins = $plugins;
+        $this->marketplaceApi = $marketplaceApi;
+
         parent::__construct();
     }
 
@@ -92,6 +99,10 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         }
         $plugins = $this->plugins->searchPlugins($query, $sort, $showThemes, $type);
 
+        $licenseKey = new LicenseKey();
+
+        $view->hasLicenseKey = $licenseKey->has();
+        $view->consumer = $this->marketplaceApi->getConsumer();
         $view->plugins = $plugins;
         $view->showThemes = $showThemes;
         $view->showPaid = $showPaid;

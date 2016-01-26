@@ -1,8 +1,8 @@
 <?php
 
 use Interop\Container\ContainerInterface;
-use Piwik\Option;
 use Piwik\Plugins\Marketplace\Api\Service;
+use Piwik\Plugins\Marketplace\LicenseKey;
 
 return array(
     'MarketplaceEndpoint' => 'http://plugins.piwik.org',
@@ -18,8 +18,10 @@ return array(
 
         $service = new Service($domain);
 
-        $accessToken = Option::get('marketplace_license_key');
-        $previous->authenticate($accessToken);
+        $key = new LicenseKey();
+        $accessToken = $key->get();
+
+        $service->authenticate($accessToken);
 
         return $service;
     }

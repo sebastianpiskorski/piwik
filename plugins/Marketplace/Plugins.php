@@ -20,16 +20,16 @@ class Plugins
     /**
      * @var Api\Client
      */
-    private $marketplaceApi;
+    private $marketplaceClient;
     
-    public function __construct(Api\Client $marketplaceApi)
+    public function __construct(Api\Client $marketplaceClient)
     {
-        $this->marketplaceApi = $marketplaceApi;
+        $this->marketplaceClient = $marketplaceClient;
     }
 
     public function getPluginInfo($pluginName)
     {
-        $plugin = $this->marketplaceApi->getPluginInfo($pluginName);
+        $plugin = $this->marketplaceClient->getPluginInfo($pluginName);
         $plugin = $this->enrichPluginInformation($plugin);
 
         return $plugin;
@@ -38,9 +38,9 @@ class Plugins
     public function getAvailablePluginNames($themesOnly)
     {
         if ($themesOnly) {
-            $plugins = $this->marketplaceApi->searchForThemes('', '', '', '');
+            $plugins = $this->marketplaceClient->searchForThemes('', '', '', '');
         } else {
-            $plugins = $this->marketplaceApi->searchForPlugins('', '', '', '');
+            $plugins = $this->marketplaceClient->searchForPlugins('', '', '', '');
         }
 
         $names = array();
@@ -62,9 +62,9 @@ class Plugins
     public function searchPlugins($query, $sort, $themesOnly, $purchaseType = '')
     {
         if ($themesOnly) {
-            $plugins = $this->marketplaceApi->searchForThemes('', $query, $sort, $purchaseType);
+            $plugins = $this->marketplaceClient->searchForThemes('', $query, $sort, $purchaseType);
         } else {
-            $plugins = $this->marketplaceApi->searchForPlugins('', $query, $sort, $purchaseType);
+            $plugins = $this->marketplaceClient->searchForPlugins('', $query, $sort, $purchaseType);
         }
 
         foreach ($plugins as $key => $plugin) {
@@ -107,7 +107,7 @@ class Plugins
         $loadedPlugins = $pluginManager->getLoadedPlugins();
 
         try {
-            $pluginsHavingUpdate = $this->marketplaceApi->getInfoOfPluginsHavingUpdate($loadedPlugins, $themesOnly);
+            $pluginsHavingUpdate = $this->marketplaceClient->getInfoOfPluginsHavingUpdate($loadedPlugins, $themesOnly);
         } catch (\Exception $e) {
             $pluginsHavingUpdate = array();
         }

@@ -18,6 +18,12 @@ use Piwik\Plugins\Marketplace\Plugins;
  */
 class Menu extends \Piwik\Plugin\Menu
 {
+    private $marketplacePlugins;
+
+    public function __construct(Plugins $marketplacePlugins)
+    {
+        $this->marketplacePlugins = $marketplacePlugins;
+    }
 
     public function configureAdminMenu(MenuAdmin $menu)
     {
@@ -28,9 +34,8 @@ class Menu extends \Piwik\Plugin\Menu
         $pluginsUpdateMessage = '';
 
         if ($hasSuperUserAcess && $isMarketplaceEnabled) {
-            $marketplace = new Plugins();
-            $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
-            $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
+            $pluginsHavingUpdate = $this->marketplacePlugins->getPluginsHavingUpdate($themesOnly = false);
+            $themesHavingUpdate  = $this->marketplacePlugins->getPluginsHavingUpdate($themesOnly = true);
 
             if (!empty($pluginsHavingUpdate)) {
                 $pluginsUpdateMessage = sprintf(' (%d)', count($pluginsHavingUpdate) + count($themesHavingUpdate));
