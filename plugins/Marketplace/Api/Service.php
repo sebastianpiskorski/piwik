@@ -9,7 +9,7 @@
 namespace Piwik\Plugins\Marketplace\Api;
 
 use Piwik\Cache;
-use Piwik\Http as PiwikHttp;
+use Piwik\Http;
 
 /**
  *
@@ -51,17 +51,26 @@ class Service
 
         $url = sprintf('%s%s?%s', $endpoint, $action, $query);
 
+        $post = null;
         if ($this->accessToken) {
-            $url .= '&access_token=' . $this->accessToken;
+            $post = array('access_token' => $this->accessToken);
         }
 
-        $response = PiwikHttp::sendHttpRequest($url, static::HTTP_REQUEST_TIMEOUT, $userAgent = null,
-                                               $destinationPath = null,
-                                               $followDepth = 0,
-                                               $acceptLanguage = false,
-                                               $byteRange = false,
-                                               $getExtendedInfo = false,
-                                               $httpMethod = 'POST');
+        $method = Http::getTransportMethod();
+        $timeout = static::HTTP_REQUEST_TIMEOUT;
+
+        $response = Http::sendHttpRequestBy($method,
+                                            $url,
+                                            $timeout,
+                                            $userAgent = null,
+                                            $destinationPath = null,
+                                            $file = null,
+                                            $followDepth = 0,
+                                            $acceptLanguage = false,
+                                            $acceptInvalidSslCertificate = false,
+                                            $byteRange = false, $getExtendedInfo = false, $httpMethod = 'POST',
+                                            $httpUsername = null, $httpPassword = null, $post);
+
         $result = json_decode($response, true);
 
         if (is_null($result)) {

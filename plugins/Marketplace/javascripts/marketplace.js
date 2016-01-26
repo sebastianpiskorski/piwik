@@ -38,7 +38,13 @@ $(document).ready(function () {
             format: 'JSON'
         }, 'get');
         ajaxRequest.setCallback(function (response) {
-                debugger;
+            if (response && response.value) {
+                var UI = require('piwik/UI');
+                var notification = new UI.Notification();
+                notification.show('License key updated', {context: 'success'});
+
+                piwikHelper.redirect();
+            }
         });
         ajaxRequest.send(false);
 
