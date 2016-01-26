@@ -46,6 +46,10 @@ class API extends \Piwik\Plugin\API
         try {
             $consumer = $this->marketplaceService->fetch('consumer', array());
         } catch (Api\Service\Exception $e) {
+            if ($e->getCode() === Api\Service\Exception::HTTP_ERROR) {
+                throw $e;
+            }
+
             $consumer = false;
         }
 

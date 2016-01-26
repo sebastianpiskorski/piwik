@@ -83,11 +83,11 @@ class Service
         if (is_null($result)) {
             $message = sprintf('There was an error reading the response from the Marketplace: %s. Please try again later.',
                 substr($response, 0, 50));
-            throw new Service\Exception($message);
+            throw new Service\Exception($message, Service\Exception::HTTP_ERROR);
         }
 
         if (!empty($result['error'])) {
-            throw new Service\Exception($result['error']);
+            throw new Service\Exception($result['error'], Service\Exception::API_ERROR);
         }
 
         return $result;
