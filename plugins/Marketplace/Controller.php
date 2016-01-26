@@ -9,7 +9,9 @@
 namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Common;
+use Piwik\Date;
 use Piwik\Http;
+use Piwik\Metrics\Formatter;
 use Piwik\Nonce;
 use Piwik\Piwik;
 use Piwik\Plugins\CorePluginsAdmin\Controller as PluginsController;
@@ -59,7 +61,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             $activeTab = '';
         }
 
-        $view = $this->configureView('@Marketplace/pluginDetails');
+        $view = $this->configureView('@Marketplace/plugin-details');
 
         try {
             $view->plugin = $this->plugins->getPluginInfo($pluginName);
@@ -101,8 +103,20 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $licenseKey = new LicenseKey();
 
+        $consumer = $this->marketplaceApi->getConsumer();
+
+        if (!empty($consumer['expireDate'])) {
+            $expireDate = Date::factory($consumer['expireDate']);
+            $consumer['expireDateLong'] = $expireDate->getLocalized(Date::DATE_FORMAT_LONG);
+
+            $seconds = $expireDate->getTimestamp() - Date::now()->getTimestamp();
+
+            $formatter = new Formatter();
+            $consumer['expireDateDiff'] = $formatter->getPrettyTimeFromSeconds($seconds, $displayTimeAsSentence = true, $round = true);
+        }
+
         $view->hasLicenseKey = $licenseKey->has();
-        $view->consumer = $this->marketplaceApi->getConsumer();
+        $view->consumer = $consumer;
         $view->plugins = $plugins;
         $view->showThemes = $showThemes;
         $view->showPaid = $showPaid;

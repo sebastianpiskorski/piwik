@@ -87,7 +87,7 @@
                             <button class="btn btn-noop btn-block">
                                 {{ 'General_Installed'|translate }}
                             </button>
-                        {% elseif plugin.isPaid %}
+                        {% elseif plugin.isPaid and not plugin.isDownloadable %}
                             <a class="btn btn-link btn-block plugin-details" href="#" data-pluginName="{{ plugin.name }}" title="{{ 'General_MoreDetails'|translate }}">
                                 {{ 'General_MoreDetails'|translate }}
                             </a>

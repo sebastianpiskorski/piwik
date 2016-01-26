@@ -28,8 +28,13 @@
                 <p>
                     {% if consumer is defined and consumer and consumer.name %}
 
-                        You have access to Paid Plugins as a client of <a href="https://piwik.pro">Piwik PRO</a>. The license
-                        expires on {{ consumer.expireDate }} <strong>in 15 days</strong>. To extend the date of your license or if you experience any troubles contact
+                        You have access to Paid Plugins as a client of <a href="https://piwik.pro">Piwik PRO</a>.
+
+                        {% if consumer.expireDateLong is defined and consumer.expireDateLong %}
+                            The license expires on {{ consumer.expireDateLong }} in about <strong> {{ consumer.expireDateDiff }}</strong>.
+                        {% endif %}
+
+                        To extend the date of your license or if you experience any troubles contact
                         <a target="_blank" href="https://piwik.pro/">Piwik PRO</a>.
 
                         {% if consumer.showWarningLicenseExpiresSoon %}

@@ -11,6 +11,7 @@ namespace Piwik\Plugins\Marketplace;
 use Exception;
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugins\Marketplace\Api\Client;
 use Piwik\Plugins\Marketplace\Api\Service;
 
 /**
@@ -21,23 +22,29 @@ use Piwik\Plugins\Marketplace\Api\Service;
 class API extends \Piwik\Plugin\API
 {
     /**
-     * @var Service
+     * @var Client
      */
     private $marketplaceClient;
 
-    public function __construct(Service $client)
+    /**
+     * @var Service
+     */
+    private $marketplaceService;
+
+    public function __construct(Service $service, Client $client)
     {
-        $this->marketplaceClient = $client;
+        $this->marketplaceClient  = $client;
+        $this->marketplaceService = $service;
     }
 
     public function saveLicenseKey($licenseKey)
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        $this->marketplaceClient->authenticate($licenseKey);
+        $this->marketplaceService->authenticate($licenseKey);
 
         try {
-            $consumer = $this->marketplaceClient->fetch('consumer', array());
+            $consumer = $this->marketplaceService->fetch('consumer', array());
         } catch (Api\Service\Exception $e) {
             $consumer = false;
         }
@@ -48,6 +55,8 @@ class API extends \Piwik\Plugin\API
 
         $key = new LicenseKey();
         $key->set($licenseKey);
+
+        $this->marketplaceClient->clearAllCacheEntries();
 
         return true;
     }

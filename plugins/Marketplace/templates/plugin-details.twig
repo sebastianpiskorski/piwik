@@ -25,9 +25,7 @@
                 </div>
                 <div class="width:25%;float:left;">
 
-                    {% if plugin.isCustomPlugin %}
-                        Install
-                    {% elseif plugin.isPaid %}
+                    {% if plugin.isPaid and (not plugin.isDownloadable or not isSuperUser) %}
                         <a class="install update"
                            target="_blank"
                            href="{{ plugin.homepage|e('html_attr') }}"
@@ -56,7 +54,7 @@
                             {% if latestVersion.readmeHtml.faq %}
                                 <li><a href="#tabs-faq">{{ 'General_Faq'|translate }}</a></li>
                             {% endif %}
-                            {% if not plugin.isPaid %}
+                            {% if plugin.isDownloadable %}
                                 <li><a href="#tabs-changelog">{{ 'CorePluginsAdmin_Changelog'|translate }}</a></li>
                             {% endif %}
                             {% if plugin.screenshots|length %}
@@ -78,7 +76,7 @@
                             </div>
                         {% endif %}
 
-                        {% if not plugin.isPaid %}
+                        {% if plugin.isDownloadable %}
                             <div id="tabs-changelog">
                                 {{ pluginsMacro.missingRequirementsPleaseUpdateNotice(plugin) }}
                                 {% if plugin.canBeUpdated %}

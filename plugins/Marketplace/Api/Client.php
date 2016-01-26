@@ -21,16 +21,14 @@ class Client
     const CACHE_TIMEOUT_IN_SECONDS = 1200;
     const HTTP_REQUEST_TIMEOUT = 60;
 
+    /**
+     * @var Service
+     */
     private $service;
 
     public function __construct(Service $service)
     {
         $this->service = $service;
-    }
-
-    public function authenticate($accessToken)
-    {
-        $this->service->authenticate($accessToken);
     }
 
     public function getPluginInfo($name)
@@ -165,8 +163,7 @@ class Client
 
     public function clearAllCacheEntries()
     {
-        $cache = Cache::getLazyCache();
-        $cache->flushAll();
+        $this->buildCache()->flushAll();
     }
 
     private function buildCache()
@@ -176,7 +173,9 @@ class Client
 
     private function getCacheKey($action, $query)
     {
-        return sprintf('marketplace.api.2.0.%s.%s', str_replace('/', '.', $action), md5($query));
+        $version = $this->service->getVersion();
+
+        return sprintf('marketplace.api.%s.%s.%s', $version, str_replace('/', '.', $action), md5($query));
     }
 
     /**

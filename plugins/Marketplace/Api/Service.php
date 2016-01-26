@@ -29,6 +29,8 @@ class Service
      */
     private $accessToken;
 
+    private $version = 2;
+
     public function __construct($domain)
     {
         $this->domain = $domain;
@@ -43,11 +45,16 @@ class Service
         }
     }
 
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
     public function fetch($action, $params)
     {
         $query = http_build_query($params);
 
-        $endpoint = $this->domain . '/api/2.0/';
+        $endpoint = sprintf('%s/api/%d.0/', $this->domain, $this->version);
 
         $url = sprintf('%s%s?%s', $endpoint, $action, $query);
 
@@ -90,6 +97,5 @@ class Service
     {
         return $this->domain;
     }
-
 
 }
