@@ -8,206 +8,189 @@
  */
 namespace Piwik\Plugins\Marketplace;
 
-use Piwik\Date;
-use Piwik\Plugin\Dependency as PluginDependency;
-use Piwik\Plugin;
+use Piwik\Cache;
+use Piwik\Http;
+use Piwik\Option;
+use Piwik\Plugins\Marketplace\Api\Client;
+use Piwik\Version;
 
 /**
  *
  */
 class MarketplaceApi
 {
-    /**
-     * @var MarketplaceApiClient
-     */
+    const CACHE_TIMEOUT_IN_SECONDS = 1200;
+    const HTTP_REQUEST_TIMEOUT = 60;
+
     private $client;
 
-    public function __construct()
+    public function __construct(Client $client)
     {
-        $this->client = new MarketplaceApiClient();
+        $this->client = $client;
     }
 
-    public function getPluginInfo($pluginName)
+    public function authenticate($accessToken)
     {
-        $marketplace = new MarketplaceApiClient();
-
-        $plugin = $marketplace->getPluginInfo($pluginName);
-        $plugin = $this->enrichPluginInformation($plugin);
-
-        return $plugin;
+        $this->client->authenticate($accessToken);
     }
 
-    public function getAvailablePluginNames($themesOnly)
+    public function getPluginInfo($name)
     {
-        if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', '', '', '');
-        } else {
-            $plugins = $this->client->searchForPlugins('', '', '', '');
-        }
+        $action = sprintf('plugins/%s/info', $name);
 
-        $names = array();
-        foreach ($plugins as $plugin) {
-            $names[] = $plugin['name'];
-        }
-
-        return $names;
+        return $this->fetch($action, array());
     }
 
-    public function getAllAvailablePluginNames()
+    public function getConsumer()
     {
-        return array_merge(
-            $this->getAvailablePluginNames(true),
-            $this->getAvailablePluginNames(false)
-        );
+        return $this->fetch('consumer', array());
     }
 
-    public function searchPlugins($query, $sort, $themesOnly, $purchaseType = '')
+    public function download($pluginOrThemeName, $target)
     {
-        if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', $query, $sort, $purchaseType);
-        } else {
-            $plugins = $this->client->searchForPlugins('', $query, $sort, $purchaseType);
+        $downloadUrl = $this->getDownloadUrl($pluginOrThemeName);
+
+        if (empty($downloadUrl)) {
+            return false;
         }
 
-        foreach ($plugins as $key => $plugin) {
-            $plugins[$key] = $this->enrichPluginInformation($plugin);
-        }
+        $success = Http::fetchRemoteFile($downloadUrl, $target, 0, static::HTTP_REQUEST_TIMEOUT);
 
-        return $plugins;
-    }
-
-    private function getPluginUpdateInformation($plugin)
-    {
-        if (empty($plugin['name'])) {
-            return;
-        }
-
-        $pluginsHavingUpdate = $this->getPluginsHavingUpdate($plugin['isTheme']);
-
-        foreach ($pluginsHavingUpdate as $pluginHavingUpdate) {
-            if ($plugin['name'] == $pluginHavingUpdate['name']) {
-                return $pluginHavingUpdate;
-            }
-        }
-    }
-
-    private function hasPluginUpdate($plugin)
-    {
-        $update = $this->getPluginUpdateInformation($plugin);
-
-        return !empty($update);
+        return $success;
     }
 
     /**
-     * @param bool $themesOnly
+     * @param \Piwik\Plugin[] $plugins
+     * @return array|mixed
+     */
+    public function checkUpdates($plugins)
+    {
+        $params = array();
+
+        foreach ($plugins as $plugin) {
+            $pluginName = $plugin->getPluginName();
+            if (!\Piwik\Plugin\Manager::getInstance()->isPluginBundledWithCore($pluginName)) {
+                $params[] = array('name' => $plugin->getPluginName(), 'version' => $plugin->getVersion());
+            }
+        }
+
+        if (empty($params)) {
+            return array();
+        }
+
+        $params = array('plugins' => $params);
+
+        $hasUpdates = $this->fetch('plugins/checkUpdates', array('plugins' => json_encode($params)));
+
+        if (empty($hasUpdates)) {
+            return array();
+        }
+
+        return $hasUpdates;
+    }
+
+    /**
+     * @param  \Piwik\Plugin[] $plugins
+     * @param  bool $themesOnly
      * @return array
      */
-    public function getPluginsHavingUpdate($themesOnly)
+    public function getInfoOfPluginsHavingUpdate($plugins, $themesOnly)
     {
-        $pluginManager = \Piwik\Plugin\Manager::getInstance();
-        $pluginManager->loadAllPluginsAndGetTheirInfo();
-        $loadedPlugins = $pluginManager->getLoadedPlugins();
+        $hasUpdates = $this->checkUpdates($plugins);
+
+        $pluginDetails = array();
+
+        foreach ($hasUpdates as $pluginHavingUpdate) {
+            $plugin = $this->getPluginInfo($pluginHavingUpdate['name']);
+            $plugin['repositoryChangelogUrl'] = $pluginHavingUpdate['repositoryChangelogUrl'];
+
+            if (!empty($plugin['isTheme']) == $themesOnly) {
+                $pluginDetails[] = $plugin;
+            }
+        }
+
+        return $pluginDetails;
+    }
+
+    public function searchForPlugins($keywords, $query, $sort, $purchaseType)
+    {
+        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
+    }
+
+    public function searchForThemes($keywords, $query, $sort, $purchaseType)
+    {
+        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort, 'purchase_type' => $purchaseType));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
+    }
+
+    private function fetch($action, $params)
+    {
+        ksort($params); // sort params so cache is reused more often even if param order is different
+        $query = http_build_query($params);
+        $cacheId = $this->getCacheKey($action, $query);
+
+        $cache  = $this->buildCache();
+        $result = $cache->fetch($cacheId);
+
+        if ($result !== false) {
+            return $result;
+        }
 
         try {
-            $pluginsHavingUpdate = $this->client->getInfoOfPluginsHavingUpdate($loadedPlugins, $themesOnly);
-        } catch (\Exception $e) {
-            $pluginsHavingUpdate = array();
+            $result = $this->client->fetch($action, $params);
+        } catch (Api\Client\Exception $e) {
+            throw new Api\Exception($e->getMessage(), $e->getCode());
         }
 
-        foreach ($pluginsHavingUpdate as $key => $updatePlugin) {
-            foreach ($loadedPlugins as $loadedPlugin) {
-                if (!empty($updatePlugin['name'])
-                    && $loadedPlugin->getPluginName() == $updatePlugin['name']
-                ) {
-                    $updatePlugin['currentVersion'] = $loadedPlugin->getVersion();
-                    $updatePlugin['isActivated'] = $pluginManager->isPluginActivated($updatePlugin['name']);
-                    $pluginsHavingUpdate[$key] = $this->addMissingRequirements($updatePlugin);
-                    break;
-                }
-            }
-        }
+        $cache->save($cacheId, $result, self::CACHE_TIMEOUT_IN_SECONDS);
 
-        // remove plugins that have updates but for some reason are not loaded
-        foreach ($pluginsHavingUpdate as $key => $updatePlugin) {
-            if (empty($updatePlugin['currentVersion'])) {
-                unset($pluginsHavingUpdate[$key]);
-            }
-        }
-
-        return $pluginsHavingUpdate;
+        return $result;
     }
 
-    private function enrichPluginInformation($plugin)
+    public function clearAllCacheEntries()
     {
-        $plugin['isInstalled']  = Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
-        $plugin['canBeUpdated'] = $plugin['isInstalled'] && $this->hasPluginUpdate($plugin);
-        $plugin['lastUpdated'] = $this->toShortDate($plugin['lastUpdated']);
-
-        if ($plugin['canBeUpdated']) {
-            $pluginUpdate = $this->getPluginUpdateInformation($plugin);
-            $plugin['repositoryChangelogUrl'] = $pluginUpdate['repositoryChangelogUrl'];
-            $plugin['currentVersion']         = $pluginUpdate['currentVersion'];
-        }
-
-        if (!empty($plugin['activity']['lastCommitDate'])
-            && false === strpos($plugin['activity']['lastCommitDate'], '0000')
-            && false === strpos($plugin['activity']['lastCommitDate'], '1970')) {
-            $plugin['activity']['lastCommitDate'] = $this->toLongDate($plugin['activity']['lastCommitDate']);
-        } else {
-            $plugin['activity']['lastCommitDate'] = null;
-        }
-
-        if (!empty($plugin['versions'])) {
-            foreach ($plugin['versions'] as $index => $version) {
-                $plugin['versions'][$index]['release'] = $this->toLongDate($version['release']);
-            }
-        }
-
-        $plugin = $this->addMissingRequirements($plugin);
-
-        return $plugin;
+        $cache = Cache::getLazyCache();
+        $cache->flushAll();
     }
 
-    private function toLongDate($date)
+    private function buildCache()
     {
-        if (!empty($date)) {
-            $date = Date::factory($date)->getLocalized(Date::DATE_FORMAT_LONG);
-        }
-
-        return $date;
+        return Cache::getLazyCache();
     }
 
-    private function toShortDate($date)
+    private function getCacheKey($action, $query)
     {
-        if (!empty($date)) {
-            $date = Date::factory($date)->getLocalized(Date::DATE_FORMAT_SHORT);
-        }
-
-        return $date;
+        return sprintf('marketplace.api.2.0.%s.%s', str_replace('/', '.', $action), md5($query));
     }
 
     /**
-     * @param $plugin
+     * @param  $pluginOrThemeName
+     * @throws Api\Exception
+     * @return string
      */
-    private function addMissingRequirements($plugin)
+    public function getDownloadUrl($pluginOrThemeName)
     {
-        $plugin['missingRequirements'] = array();
+        $plugin = $this->getPluginInfo($pluginOrThemeName);
 
-        if (empty($plugin['versions']) || !is_array($plugin['versions'])) {
-            return $plugin;
+        if (empty($plugin['versions'])) {
+            throw new Api\Exception('Plugin has no versions.');
         }
 
-        $latestVersion = $plugin['versions'][count($plugin['versions']) - 1];
+        $latestVersion = array_pop($plugin['versions']);
+        $downloadUrl = $latestVersion['download'];
 
-        if (empty($latestVersion['requires'])) {
-            return $plugin;
-        }
-
-        $requires = $latestVersion['requires'];
-
-        $dependency = new PluginDependency();
-        $plugin['missingRequirements'] = $dependency->getMissingDependencies($requires);
-
-        return $plugin;
+        return $this->client->getDomain() . $downloadUrl . '?coreVersion=' . Version::VERSION;
     }
+
 }

@@ -11,6 +11,7 @@ namespace Piwik\Plugins\CoreUpdater;
 use Exception;
 use Piwik\Common;
 use Piwik\Config;
+use Piwik\Container\StaticContainer;
 use Piwik\DbHelper;
 use Piwik\Filechecks;
 use Piwik\Filesystem;
@@ -20,7 +21,6 @@ use Piwik\Piwik;
 use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin;
 use Piwik\Plugins\LanguagesManager\LanguagesManager;
-use Piwik\Plugins\Marketplace\MarketplaceApi;
 use Piwik\SettingsServer;
 use Piwik\Updater as DbUpdater;
 use Piwik\Version;
@@ -65,7 +65,7 @@ class Controller extends \Piwik\Plugin\Controller
         $marketplacePlugins = array();
         try {
             if (!empty($incompatiblePlugins)) {
-                $marketplace = new MarketplaceApi();
+                $marketplace = StaticContainer::get('Piwik\Plugins\Marketplace\Plugins');
                 $marketplacePlugins = $marketplace->getAllAvailablePluginNames();
             }
         } catch (\Exception $e) {}

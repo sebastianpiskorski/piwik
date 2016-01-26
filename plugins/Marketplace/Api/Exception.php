@@ -7,11 +7,11 @@
  *
  */
 
-namespace Piwik\Plugins\Marketplace;
+namespace Piwik\Plugins\Marketplace\Api;
 
 /**
  */
-class MarketplaceApiException extends \Exception
+class Exception extends \Exception
 {
 
 }

@@ -7,18 +7,40 @@
 
 $(document).ready(function () {
 
+    function setLicenseKeyEnabled(enabled)
+    {
+        $('#piwikpro_license_key_submit').prop('disabled', !enabled);
+    }
+
     $('#piwikpro_license_key').on('keyup', function () {
         var value = $(this).val();
-        if (value) {
-            $('#piwikpro_license_key_submit').prop('disabled', false);
-        } else {
-            $('#piwikpro_license_key_submit').prop('disabled', true);
-        }
+        setLicenseKeyEnabled(!!value);
     });
+
+    function checkLicenseKey() {
+    }
 
     $('#piwikpro_license_key_submit').on('click', function () {
 
-        var value = $('#piwikpro_license_key')
+        var value = $('#piwikpro_license_key').val();
+
+        if (!value) {
+            return;
+        }
+
+        setLicenseKeyEnabled(false);
+
+        var ajaxRequest = new ajaxHelper();
+        ajaxRequest.addParams({
+            module: 'API',
+            method: 'Marketplace.saveLicenseKey',
+            licenseKey: value,
+            format: 'JSON'
+        }, 'get');
+        ajaxRequest.setCallback(function (response) {
+                debugger;
+        });
+        ajaxRequest.send(false);
 
     });
 

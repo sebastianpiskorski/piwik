@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Config;
+use Piwik\Container\StaticContainer;
 use Piwik\Mail;
 use Piwik\Option;
 use Piwik\Piwik;
@@ -173,7 +174,7 @@ class UpdateCommunication
 
     protected function getPluginsHavingUpdate()
     {
-        $marketplace         = new MarketplaceApi();
+        $marketplace         = StaticContainer::get('Piwik\Plugins\Marketplace\Plugins');
         $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
         $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
 

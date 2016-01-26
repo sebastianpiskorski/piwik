@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Common;
+use Piwik\Http;
 use Piwik\Nonce;
 use Piwik\Piwik;
 use Piwik\Plugins\CorePluginsAdmin\Controller as PluginsController;
@@ -26,6 +27,21 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     private $validSortMethods = array('popular', 'newest', 'alpha');
     private $defaultSortMethod = 'popular';
 
+    /**
+     * @var Plugins
+     */
+    private $plugins;
+
+    /**
+     * Controller constructor.
+     * @param Plugins $plugins
+     */
+    public function __construct(Plugins $plugins)
+    {
+        $this->plugins = $plugins;
+        parent::__construct();
+    }
+
     public function pluginDetails()
     {
         static::dieIfMarketplaceIsDisabled();
@@ -39,8 +55,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $view = $this->configureView('@Marketplace/pluginDetails');
 
         try {
-            $marketplace  = new MarketplaceApi();
-            $view->plugin = $marketplace->getPluginInfo($pluginName);
+            $view->plugin = $this->plugins->getPluginInfo($pluginName);
             $view->isSuperUser  = Piwik::hasUserSuperUserAccess();
             $view->installNonce = Nonce::getNonce(PluginsController::INSTALL_NONCE);
             $view->updateNonce  = Nonce::getNonce(PluginsController::UPDATE_NONCE);
@@ -70,14 +85,12 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $view = $this->configureView('@Marketplace/overview');
 
-        $marketplace = new MarketplaceApi();
-
         $showThemes = ($show === 'themes');
         $showPaid = ($type === 'paid');
         if ($type !== 'paid') {
             $type = 'free';
         }
-        $plugins = $marketplace->searchPlugins($query, $sort, $showThemes, $type);
+        $plugins = $this->plugins->searchPlugins($query, $sort, $showThemes, $type);
 
         $view->plugins = $plugins;
         $view->showThemes = $showThemes;

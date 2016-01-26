@@ -19,7 +19,7 @@ use Piwik\Notification;
 use Piwik\Piwik;
 use Piwik\Plugin;
 use Piwik\Plugins\Marketplace\Marketplace;
-use Piwik\Plugins\Marketplace\MarketplaceApi;
+use Piwik\Plugins\Marketplace\Plugins;
 use Piwik\Settings\Manager as SettingsManager;
 use Piwik\Translation\Translator;
 use Piwik\Url;
@@ -69,7 +69,7 @@ class Controller extends Plugin\ControllerAdmin
             return;
         }
 
-        $marketplace = new MarketplaceApi();
+        $marketplace = new Plugins();
         $view->plugin = $marketplace->getPluginInfo($pluginName);
 
         return $view;
@@ -188,7 +188,7 @@ class Controller extends Plugin\ControllerAdmin
 
         if (Marketplace::isMarketplaceEnabled()) {
             try {
-                $marketplace = new MarketplaceApi();
+                $marketplace = new Plugins();
                 $view->marketplacePluginNames = $marketplace->getAvailablePluginNames($themesOnly);
 
                 $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate(true);

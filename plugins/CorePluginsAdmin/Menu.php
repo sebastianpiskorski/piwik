@@ -12,7 +12,7 @@ use Piwik\Db;
 use Piwik\Menu\MenuAdmin;
 use Piwik\Piwik;
 use Piwik\Plugins\Marketplace\Marketplace;
-use Piwik\Plugins\Marketplace\MarketplaceApi;
+use Piwik\Plugins\Marketplace\Plugins;
 
 /**
  */
@@ -28,7 +28,7 @@ class Menu extends \Piwik\Plugin\Menu
         $pluginsUpdateMessage = '';
 
         if ($hasSuperUserAcess && $isMarketplaceEnabled) {
-            $marketplace = new MarketplaceApi();
+            $marketplace = new Plugins();
             $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
             $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
 

@@ -8,8 +8,20 @@
  */
 namespace Piwik\Plugins\Marketplace;
 
+use Piwik\Container\StaticContainer;
+
 class Tasks extends \Piwik\Plugin\Tasks
 {
+    /**
+     * @var MarketplaceApi
+     */
+    private $api;
+
+    public function __construct(MarketplaceApi $api)
+    {
+        $this->api = $api;
+    }
+
     public function schedule()
     {
         $this->daily('clearAllCacheEntries', null, self::LOWEST_PRIORITY);
@@ -21,8 +33,7 @@ class Tasks extends \Piwik\Plugin\Tasks
 
     public function clearAllCacheEntries()
     {
-        $marketplace = new MarketplaceApiClient();
-        $marketplace->clearAllCacheEntries();
+        $this->api->clearAllCacheEntries();
     }
 
     public function sendNotificationIfUpdatesAvailable()
