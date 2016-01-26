@@ -132,6 +132,15 @@ enabled = 0
 ; Note that for quick debugging, instead of using below setting, you can add `&disable_merged_assets=1` to the Piwik URL
 disable_merged_assets = 0
 
+[Marketplace]
+; By setting this option to 0, you can disable the Piwik marketplace. This is useful to prevent giving the Super user
+; the access to disk and install custom PHP code (Piwik plugins).
+enabled = 1
+
+; For Piwik PRO clients 3rd party plugins are hidden by default to make sure the Piwik is stable. By setting this
+; to 1 third plugins will be shown even for Piwik PRO clients.
+force_show_third_party_plugins = 0
+
 [General]
 
 ; the following settings control whether Unique Visitors `nb_uniq_visitors` and Unique users `nb_users` will be processed for different period types.
@@ -520,10 +529,6 @@ absolute_chroot_path =
 ; In some rare cases it may be useful to explicitely tell Piwik not to use LOAD DATA INFILE
 ; This may for example be useful when doing Mysql AWS replication
 enable_load_data_infile = 1
-
-; By setting this option to 0, you can disable the Piwik marketplace. This is useful to prevent giving the Super user
-; the access to disk and install custom PHP code (Piwik plugins).
-enable_marketplace = 1
 
 ; By setting this option to 0:
 ; - links to Enable/Disable/Uninstall plugins will be hidden and disabled

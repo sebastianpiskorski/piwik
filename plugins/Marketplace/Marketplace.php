@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\Marketplace;
 
 use Piwik\Config;
+use Piwik\Container\StaticContainer;
 use Piwik\Plugin;
 
 class Marketplace extends \Piwik\Plugin
@@ -19,8 +20,8 @@ class Marketplace extends \Piwik\Plugin
     public function registerEvents()
     {
         return array(
-            'AssetManager.getJavaScriptFiles'        => 'getJsFiles',
-            'AssetManager.getStylesheetFiles'        => 'getStylesheetFiles'
+            'AssetManager.getJavaScriptFiles' => 'getJsFiles',
+            'AssetManager.getStylesheetFiles' => 'getStylesheetFiles'
         );
     }
 
@@ -37,8 +38,20 @@ class Marketplace extends \Piwik\Plugin
 
     public static function isMarketplaceEnabled()
     {
-        return (bool) Config::getInstance()->General['enable_marketplace'] &&
+        return (bool) Config::getInstance()->Marketplace['enabled'] &&
                Plugin\Manager::getInstance()->isPluginActivated('Marketplace');
+    }
+
+    public static function showOnlyPiwikAndPiwikProPlugins()
+    {
+        if (Config::getInstance()->Marketplace['force_show_third_party_plugins']) {
+            return false;
+        }
+
+        $client   = StaticContainer::get('Piwik\Plugins\Marketplace\Api\Client');
+        $consumer = $client->getConsumer();
+
+        return !empty($consumer);
     }
 
 }

@@ -67,11 +67,30 @@ class Plugins
             $plugins = $this->marketplaceClient->searchForPlugins('', $query, $sort, $purchaseType);
         }
 
+        $showOnlyPiwikPlugins = Marketplace::showOnlyPiwikAndPiwikProPlugins();
+
         foreach ($plugins as $key => $plugin) {
-            $plugins[$key] = $this->enrichPluginInformation($plugin);
+            if ($showOnlyPiwikPlugins && !$this->isPluginDevelopedByPiwikOrPiwikPro($plugin)) {
+                // for piwik pro clients we do not allow to install any 3rd party plugins
+                unset($plugins[$key]);
+            } else {
+                $plugins[$key] = $this->enrichPluginInformation($plugin);
+            }
         }
 
         return $plugins;
+    }
+
+    private function isPluginDevelopedByPiwikOrPiwikPro($plugin)
+    {
+        if (empty($plugin['owner'])) {
+            return false;
+        }
+
+        $owner = strtolower($plugin['owner']);
+        $allowedOwners = array('piwik', 'piwikpro');
+
+        return in_array($owner, $allowedOwners, $strict = true);
     }
 
     private function getPluginUpdateInformation($plugin)

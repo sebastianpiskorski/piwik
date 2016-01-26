@@ -1,7 +1,7 @@
 <div class="row marketplace-max-width">
 
     {# Hide filters and search for themes because we don't have many of them #}
-    {% if not showThemes and not showPaid %}
+    {% if (plugins|length) > 20 or query %}
         <div class="col-sm-12 clearfix">
 
             <form action="{{ linkTo({'sort': ''}) }}" method="post" class="plugin-search">
@@ -27,6 +27,25 @@
                 </li>
             </ul>
 
+        </div>
+    {% endif %}
+
+    {% if not showPaid and areThirdPartyPluginsHidden %}
+        <div class="col-sm-12 clearfix">
+            <div class="alert alert-info">
+                As a Piwik PRO client you can only install plugins developed by Piwik and Piwik PRO to ensure your
+                Piwik is stable and safe.
+            </div>
+        </div>
+    {% endif %}
+
+    {% if plugins|length == 0 %}
+        <div class="col-sm-12 clearfix">
+            {% if showThemes %}
+                {{ 'CorePluginsAdmin_NoThemesFound'|translate }}
+            {% else %}
+                {{ 'CorePluginsAdmin_NoPluginsFound'|translate }}
+            {% endif %}
         </div>
     {% endif %}
 
@@ -106,15 +125,6 @@
 
             </div>
         </div>
-
     {% endfor %}
-
-    {% if plugins|length == 0 %}
-        {% if showThemes %}
-            {{ 'CorePluginsAdmin_NoThemesFound'|translate }}
-        {% else %}
-            {{ 'CorePluginsAdmin_NoPluginsFound'|translate }}
-        {% endif %}
-    {% endif %}
 
 </div>

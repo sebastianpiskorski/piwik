@@ -101,8 +101,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         }
         $plugins = $this->plugins->searchPlugins($query, $sort, $showThemes, $type);
 
-        $licenseKey = new LicenseKey();
-
         $consumer = $this->marketplaceApi->getConsumer();
 
         if (!empty($consumer['expireDate'])) {
@@ -115,7 +113,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             $consumer['expireDateDiff'] = $formatter->getPrettyTimeFromSeconds($seconds, $displayTimeAsSentence = true, $round = true);
         }
 
-        $view->hasLicenseKey = $licenseKey->has();
+        $view->areThirdPartyPluginsHidden = Marketplace::showOnlyPiwikAndPiwikProPlugins();
         $view->consumer = $consumer;
         $view->plugins = $plugins;
         $view->showThemes = $showThemes;
@@ -134,7 +132,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     {
         if (!Marketplace::isMarketplaceEnabled()) {
             throw new \Exception('The Marketplace feature has been disabled.
-            You may enable the Marketplace by changing the config entry "enable_marketplace" to 1.
+            You may enable the Marketplace by changing the config entry "[Marketplace]enabled = 0" to 1.
             Please contact your Piwik admins with your request so they can assist.');
         }
 
