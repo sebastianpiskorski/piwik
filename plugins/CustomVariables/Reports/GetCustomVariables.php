@@ -36,9 +36,10 @@ class GetCustomVariables extends Base
         $view->requestConfig->filter_sort_column = 'nb_actions';
         $view->requestConfig->filter_sort_order  = 'desc';
 
-        $view->config->filters[] = function (DataTable $table) use ($view) {
-            if($this->isReportContainsUnsetVisitsColumns($table)) {
-                $message = $this->getFooterMessageExplanationMissingMetrics();
+        $that = $this;
+        $view->config->filters[] = function (DataTable $table) use ($view, $that) {
+            if($that->isReportContainsUnsetVisitsColumns($table)) {
+                $message = $that->getFooterMessageExplanationMissingMetrics();
                 $view->config->show_footer_message = $message;
             }
         };
@@ -47,7 +48,7 @@ class GetCustomVariables extends Base
     /**
      * @return array
      */
-    protected function getFooterMessageExplanationMissingMetrics()
+    public function getFooterMessageExplanationMissingMetrics()
     {
         $metrics = sprintf("'%s', '%s' %s '%s'",
             Piwik::translate('General_ColumnNbVisits'),
@@ -65,7 +66,7 @@ class GetCustomVariables extends Base
     /**
      * @return bool
      */
-    protected function isReportContainsUnsetVisitsColumns(DataTable $report)
+    public function isReportContainsUnsetVisitsColumns(DataTable $report)
     {
         $visits = $report->getColumn('nb_visits');
         $isVisitsMetricsSometimesUnset = in_array(false, $visits);

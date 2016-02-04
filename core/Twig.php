@@ -87,6 +87,9 @@ class Twig
         $this->addFilter_percentage();
         $this->addFilter_percent();
         $this->addFilter_percentEvolution();
+        $this->addFilter_piwikProAdLink();
+        $this->addFilter_piwikProOnPremisesAdLink();
+        $this->addFilter_piwikProCloudAdLink();
         $this->addFilter_prettyDate();
         $this->addFilter_safeDecodeRaw();
         $this->addFilter_number();
@@ -282,6 +285,7 @@ class Twig
     {
         $rawSafeDecoded = new Twig_SimpleFilter('rawSafeDecoded', function ($string) {
             $string = str_replace('+', '%2B', $string);
+            $string = str_replace('&nbsp;', html_entity_decode('&nbsp;'), $string);
 
             return SafeDecodeLabel::decodeLabelSafe($string);
 
@@ -319,6 +323,49 @@ class Twig
             return NumberFormatter::getInstance()->formatPercentEvolution($string);
         });
         $this->twig->addFilter($percentage);
+    }
+
+    protected function addFilter_piwikProAdLink()
+    {
+        $ads = $this->getPiwikProAdvertising();
+        $piwikProAd = new Twig_SimpleFilter('piwikProCampaignParameters', function ($url, $campaignName, $campaignMedium, $campaignContent = '') use ($ads) {
+            $url = $ads->addPromoCampaignParametersToUrl($url, $campaignName, $campaignMedium, $campaignContent);
+            return $url;
+        });
+        $this->twig->addFilter($piwikProAd);
+    }
+
+    protected function addFilter_piwikProOnPremisesAdLink()
+    {
+        $twigEnv = $this->getTwigEnvironment();
+        $ads = $this->getPiwikProAdvertising();
+        $piwikProAd = new Twig_SimpleFilter('piwikProOnPremisesPromoUrl', function ($medium, $content = '') use ($twigEnv, $ads) {
+
+            $url = $ads->getPromoUrlForOnPremises($medium, $content);
+
+            return twig_escape_filter($twigEnv, $url, 'html_attr');
+
+        }, array('is_safe' => array('html_attr')));
+        $this->twig->addFilter($piwikProAd);
+    }
+
+    protected function addFilter_piwikProCloudAdLink()
+    {
+        $twigEnv = $this->getTwigEnvironment();
+        $ads = $this->getPiwikProAdvertising();
+        $piwikProAd = new Twig_SimpleFilter('piwikProCloudPromoUrl', function ($medium, $content = '') use ($twigEnv, $ads) {
+
+            $url = $ads->getPromoUrlForCloud($medium, $content);
+
+            return twig_escape_filter($twigEnv, $url, 'html_attr');
+
+        }, array('is_safe' => array('html_attr')));
+        $this->twig->addFilter($piwikProAd);
+    }
+
+    private function getPiwikProAdvertising()
+    {
+        return StaticContainer::get('Piwik\PiwikPro\Advertising');
     }
 
     protected function addFilter_number()
