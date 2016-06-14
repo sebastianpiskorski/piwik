@@ -106,7 +106,12 @@ class SearchEngine extends Singleton
     protected function transformData($searchEngines)
     {
         $urlToInfo = array();
+
         foreach ($searchEngines as $name => $info) {
+            if (empty($info) || !is_array($info)) {
+                continue;
+            }
+
             foreach ($info as $urlDefinitions) {
                 foreach ($urlDefinitions['urls'] as $url) {
                     $searchEngineData = $urlDefinitions;
@@ -116,6 +121,7 @@ class SearchEngine extends Singleton
                 }
             }
         }
+
         return $urlToInfo;
     }
 
@@ -283,9 +289,9 @@ class SearchEngine extends Singleton
                     // Special cases: empty or no keywords
                     if (empty($key)
                         && (
-                            // Google search with no keyword
-                            ($searchEngineName == 'Google'
-                                && (empty($query) && (empty($referrerPath) || $referrerPath == '/') && empty($referrerParsed['fragment']))
+                            // Google / Yahoo search with no keyword
+                            (($searchEngineName == 'Google' || $searchEngineName == 'Yahoo!' || $searchEngineName == 'Yahoo! Japan')
+                                && (empty($query) && (empty($referrerPath) || $referrerPath == '/' || $referrerPath == '/search') && empty($referrerParsed['fragment']))
                             )
 
                             // Yahoo search with no keyword

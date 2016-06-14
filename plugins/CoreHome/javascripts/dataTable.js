@@ -473,7 +473,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
             var tableRowLimits = piwik.config.datatable_row_limits,
             evolutionLimits =
             {
-                day: [30, 60, 90, 180, 365, 500],
+                day: [7, 30, 60, 90, 180, 365, 500],
                 week: [4, 12, 26, 52, 104, 500],
                 month: [3, 6, 12, 24, 36, 120],
                 year: [3, 5, 10]
@@ -711,7 +711,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
 
                 if (self.param.keep_summary_row == 1) --totalRows;
 
-                if (offsetEnd > totalRows) offsetEndDisp = totalRows;
+                if (offsetEnd > totalRows || Number(self.param.filter_limit) == -1) offsetEndDisp = totalRows;
 
                 // only show this string if there is some rows in the datatable
                 if (totalRows != 0) {
@@ -731,7 +731,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
                 + Number(self.param.filter_limit);
             var totalRows = Number(self.param.totalRows);
             if (self.param.keep_summary_row == 1) --totalRows;
-            if (offsetEnd < totalRows) {
+            if (offsetEnd < totalRows && Number(self.param.filter_limit) != -1) {
                 $(this).css('display', 'inline');
             }
         });
@@ -843,7 +843,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
                                     if (oldDate) {
                                         $('span', annotations).each(function () {
                                             if ($(this).attr('data-date') == oldDate) {
-                                                $(this).attr('title', viewAndAdd.replace("%s", oldDate));
+                                                $(this).attr('title', sprintf(viewAndAdd, oldDate));
                                                 return false;
                                             }
                                         });
@@ -851,10 +851,10 @@ $.extend(DataTable.prototype, UIControl.prototype, {
 
                                     // change the tooltip of the clicked evolution icon
                                     if (manager.is(':hidden')) {
-                                        spanSelf.attr('title', viewAndAdd.replace("%s", date));
+                                        spanSelf.attr('title', sprintf(viewAndAdd, date));
                                     }
                                     else {
-                                        spanSelf.attr('title', hideNotes.replace("%s", date));
+                                        spanSelf.attr('title', sprintf(hideNotes, date));
                                     }
                                 }
                             );

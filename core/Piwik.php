@@ -589,7 +589,7 @@ class Piwik
         $l = strlen($userLogin);
         if (!($l >= $loginMinimumLength
             && $l <= $loginMaximumLength
-            && (preg_match('/^[A-Za-z0-9_.@+-]*$/D', $userLogin) > 0))
+            && (preg_match('/^[A-Za-zÄäÖöÜüß0-9_.@+-]*$/D', $userLogin) > 0))
         ) {
             throw new Exception(Piwik::translate('UsersManager_ExceptionInvalidLoginFormat', array($loginMinimumLength, $loginMaximumLength)));
         }
@@ -722,7 +722,7 @@ class Piwik
 
     /**
      * Returns an internationalized string using a translation token. If a translation
-     * cannot be found for the toke, the token is returned.
+     * cannot be found for the token, the token is returned.
      *
      * @param string $translationId Translation ID, eg, `'General_Date'`.
      * @param array|string|int $args `sprintf` arguments to be applied to the internationalized

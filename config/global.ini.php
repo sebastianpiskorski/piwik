@@ -304,7 +304,7 @@ minimum_mysql_version = 4.1
 ; PostgreSQL minimum required version
 minimum_pgsql_version = 8.3
 
-; Minimum adviced memory limit in php.ini file (see memory_limit value)
+; Minimum advised memory limit in php.ini file (see memory_limit value)
 minimum_memory_limit = 128
 
 ; Minimum memory limit enforced when archived via ./console core:archive
@@ -345,7 +345,7 @@ login_password_recovery_email_address = "password-recovery@{DOMAIN}"
 ; name that appears as a Sender in the password recovery email
 login_password_recovery_email_name = Piwik
 
-; email address that appears as a Repy-to in the password recovery email
+; email address that appears as a Reply-to in the password recovery email
 ; if specified, {DOMAIN} will be replaced by the current Piwik domain
 login_password_recovery_replyto_email_address = "no-reply@{DOMAIN}"
 ; name that appears as a Reply-to in the password recovery email
@@ -389,6 +389,9 @@ scheduled_reports_truncate = 23
 datatable_archiving_maximum_rows_referrers = 1000
 ; maximum number of rows for any of the Referrers subtable (search engines by keyword, keyword by campaign, etc.)
 datatable_archiving_maximum_rows_subtable_referrers = 50
+
+; maximum number of rows for the Users report
+datatable_archiving_maximum_rows_userid_users = 50000
 
 ; maximum number of rows for the Custom Variables names report
 ; Note: if the website is Ecommerce enabled, the two values below will be automatically set to 50000
@@ -513,7 +516,7 @@ overlay_disable_framed_mode = 0
 enable_custom_logo_check = 1
 
 ; If php is running in a chroot environment, when trying to import CSV files with createTableFromCSVFile(),
-; Mysql will try to load the chrooted path (which is imcomplete). To prevent an error, here you can specify the
+; Mysql will try to load the chrooted path (which is incomplete). To prevent an error, here you can specify the
 ; absolute path to the chroot environment. eg. '/path/to/piwik/chrooted/'
 absolute_chroot_path =
 
@@ -611,7 +614,9 @@ cookie_path =
 record_statistics = 1
 
 ; length of a visit in seconds. If a visitor comes back on the website visit_standard_length seconds
-; after his last page view, it will be recorded as a new visit
+; after his last page view, it will be recorded as a new visit. In case you are using the Piwik JavaScript tracker to 
+; calculate the visit count correctly, make sure to call the method "setSessionCookieTimeout" eg 
+; `_paq.push(['setSessionCookieTimeout', timeoutInSeconds=1800])`
 visit_standard_length = 1800
 
 ; The window to look back for a previous visit by this current visitor. Defaults to visit_standard_length.
@@ -622,6 +627,10 @@ window_look_back_for_visitor = 0
 
 ; visitors that stay on the website and view only one page will be considered as time on site of 0 second
 default_time_one_page_visit = 0
+
+; Comma separated list of URL query string variable names that will be removed from your tracked URLs
+; By default, Piwik will remove the most common parameters which are known to change often (eg. session ID parameters)
+url_query_parameter_to_exclude_from_url = "gclid,fb_xd_fragment,fb_comment_id,phpsessid,jsessionid,sessionid,aspsessionid,doing_wp_cron,sid"
 
 ; if set to 1, Piwik attempts a "best guess" at the visitor's country of
 ; origin when the preferred language tag omits region information.
@@ -796,6 +805,7 @@ Plugins[] = DevicePlugins
 Plugins[] = Heartbeat
 Plugins[] = Intl
 Plugins[] = PiwikPro
+Plugins[] = UserId
 
 [PluginsInstalled]
 PluginsInstalled[] = Diagnostics

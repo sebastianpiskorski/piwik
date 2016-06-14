@@ -83,7 +83,7 @@ class Controller extends ControllerAdmin
             }
         }
 
-        // we dont want to display the user currently logged so that the user can't change his settings from admin to view...
+        // we don't want to display the user currently logged so that the user can't change his settings from admin to view...
         $currentlyLogged = Piwik::getCurrentUserLogin();
         $usersLogin = Request::processRequest('UsersManager.getUsersLogin');
         foreach ($usersLogin as $login) {
@@ -459,7 +459,7 @@ class Controller extends ControllerAdmin
             $sessionInitializer = new SessionInitializer();
             $auth = StaticContainer::get('Piwik\Auth');
             $auth->setLogin($userLogin);
-            $auth->setPassword($password);
+            $auth->setPassword($newPassword);
             $sessionInitializer->initSession($auth, $rememberMe = false);
         }
     }
